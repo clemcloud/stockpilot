@@ -1,28 +1,55 @@
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from pydantic import BaseModel
+from datetime import datetime
 
 
+#This is used to create the user to validate it .
 class UserCreate(BaseModel):
-    username: str
-    email: str
-    password: str
-    role: str = "staff"  # Default role is 'staff'
+    email: EmailStr
+    
+    username: str = Field(
+        ..., 
+        min_length=3, 
+        max_length=20, 
+        description="Unique username for the account"
+    )
+    
+    password: str = Field(
+        ..., 
+        min_length=8, 
+        description="Plain-text password, will be hashed by the service layer"
+    )
 
 
-class UserUpdate(BaseModel):
-    username: Optional[str] = None
-    email: Optional[str] = None
-    password: Optional[str] = None
-    role: Optional[str] = None
-    is_active: Optional[bool] = None
-
-
+# This is the user response.
 class UserResponse(BaseModel):
     id: int
+    email: EmailStr
     username: str
-    email: str
     role: str
     is_active: bool
+    created_at: datetime
 
+    # This inner config allows Pydantic to read SQLAlchemy ORM models directly
     class Config:
         from_attributes = True
+
+
+# ==========================================
+# 3. USER UPDATE (INBOUND PATCH CONTRACT)
+# ==========================================
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    
+    username: Optional[str] = Field(
+        None, 
+        min_length=3, 
+        max_length=20, 
+        description="Optional update to username"
+    )
+    
+    password: Optional[str] = Field(
+        None, 
+        min_length=8, 
+        description="Optional password reset"
+    )

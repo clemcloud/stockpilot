@@ -1,54 +1,48 @@
-# The schemas/sales.py file defines the data models for request and response validation.
-# Aligned perfectly with the Sales and SaleItems relational database tables.
-from pydantic import BaseModel
+from typing import Optional
+from pydantic import BaseModel , Field
 from datetime import datetime
-from typing import List, Optional
 
-# ==========================================
-#               SALE ITEM SCHEMAS
-# ==========================================
+class ProductCreate(BaseModel):
+    name : str = Field(..., min_length=1, max_length=100)
+    sku : str = Field(..., min_length=1, max_length=50)
+    description : Optional[str] = Field(None, max_length=200)
+    price : float = Field(..., gt=0)
+    current_stock : int = Field(..., ge=0)
+    min_stock_level : int = Field(..., ge=0)
 
-class SaleItemCreate(BaseModel):
-    product_id: int
-    quantity: int
+class InventoryLogCreate(BaseModel):
+    product_id : int
+    change_amount : int
+    log_type : str = Field(..., pattern="^(addition|removal)$")
+    notes : Optional[str] = Field(None, max_length=200)
 
-
-class SaleItemUpdate(BaseModel):
-    product_id: Optional[int] = None
-    quantity: Optional[int] = None
-
-
-class SaleItemResponse(BaseModel):
-    id: int
-    sale_id: int
-    product_id: int
-    quantity: int
-    unit_price: float  # Captured snapshot of the price at checkout
-
-    class Config:
-        from_attributes = True
+class productUpdate(BaseModel):
+    name : Optional[str] = Field(None, min_length=1, max_length=100)
+    sku : Optional[str] = Field(None, min_length=1, max_length=50)
+    description : Optional[str] = Field(None, max_length=200)
+    price : Optional[float] = Field(None, gt=0)
+    current_stock : Optional[int] = Field(None, ge=0)
+    min_stock_level : Optional[int] = Field(None, ge=0)
 
 
-# ==========================================
-#                 SALE SCHEMAS
-# ==========================================
+class ProductResponse(BaseModel):
+    id : int
+    name : str
+    sku : str
+    description : Optional[str]
+    price : float
+    current_stock : int
+    min_stock_level : int
 
-class SaleCreate(BaseModel):
-    payment_method: str  # CASH, CARD, or MOBILE
-    items: List[SaleItemCreate]  # The incoming checkout shopping basket
+    model_config = {"from_attributes": True}
 
 
-class SaleUpdate(BaseModel):
-    payment_method: Optional[str] = None
+class InventoryLogResponse(BaseModel):
+    id : int
+    product_id : int
+    change_amount : int
+    log_type : str
+    notes : Optional[str]
+    timestamp : datetime
 
-
-class SaleResponse(BaseModel):
-    id: int
-    receipt_number: str
-    total_amount: float
-    payment_method: str
-    timestamp: datetime
-    items: List[SaleItemResponse]  # Nested list showing exactly what items were bought
-
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
