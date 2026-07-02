@@ -7,10 +7,10 @@ class Base(DeclarativeBase):
     pass
 
 engine = create_engine(settings.DATABASE_URL)
-session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal= sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Generator[Session, None, None]:
-    db = session_local()
+    db = SessionLocal()
     try:
         yield db
     finally:

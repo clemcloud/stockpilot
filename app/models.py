@@ -38,7 +38,7 @@ class InventoryLog(Base):
     product_id = Column(Integer, ForeignKey("products.id"))
     change_amount = Column(Integer)
     log_type = Column(String, nullable=False)  # "addition" or "removal"
-    notes = Column(String , nuillable=True)
+    notes = Column(String , nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     product = relationship("Product", back_populates="inventory_logs")

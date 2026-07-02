@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models import User
 from app.schemas.user import UserCreate, UserUpdate
-from app.core.security import hash_password
+from app.security import hash_password
 
 def get_user_by_id(db: Session, user_id: int):
     """Fetches a user record by their unique database ID."""
