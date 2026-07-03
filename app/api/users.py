@@ -14,10 +14,19 @@ def register_user(data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def get_user(
+    user_id: int, 
+    db: Session = Depends(get_db), 
+    current_user = Depends(get_current_user)  # Removed strict Pydantic type-hint
+):
     return get_user_by_id(db, user_id)
 
 
 @router.patch("/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def update_user(
+    user_id: int, 
+    data: UserUpdate, 
+    db: Session = Depends(get_db), 
+    current_user = Depends(get_current_user)  # Aligned to ensure Swagger enforces authorization
+):
     return update_user_profile(db, user_id, data)

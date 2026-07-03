@@ -7,7 +7,7 @@ from app.security import decode_access_token
 from app.services.user_service import get_user_by_id
 
 # Points FastAPI to the login URL endpoint for extracting bearer tokens
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def get_db():

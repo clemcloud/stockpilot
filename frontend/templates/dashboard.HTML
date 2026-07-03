@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPilot | Control Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0b0f19] text-[#e2e8f0] min-h-screen">
+
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = '/login';
+        }
+    </script>
+
+    <div class="flex h-screen overflow-hidden">
+
+        <aside class="w-64 bg-[#111827] border-r border-slate-800 flex flex-col justify-between shrink-0">
+            <div>
+                <div class="p-6 border-b border-slate-800 text-center">
+                    <h1 class="text-xl font-bold tracking-tight text-blue-500 uppercase">StockPilot</h1>
+                    <span class="text-[10px] text-slate-500 font-mono tracking-widest block mt-0.5">ENTERPRISE OS
+                        v1.0</span>
+                </div>
+                <nav class="p-4 space-y-2">
+                    <a href="#"
+                        class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 rounded-xl font-medium text-sm transition-all">
+                        <i class="fa-solid fa-chart-pie"></i> Command Center
+                    </a>
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="logout()"
+                    class="w-full py-2.5 px-4 bg-slate-900 border border-slate-800 hover:bg-red-950/20 hover:border-red-900/50 text-slate-400 hover:text-red-400 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-power-off"></i> Disconnect Terminal
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-8 relative">
+
+            <header class="flex justify-between items-center mb-8 pb-4 border-b border-slate-900">
+                <div>
+                    <h2 class="text-2xl font-bold text-white tracking-tight">System Console</h2>
+                    <p class="text-xs text-slate-500">Live operational ledger metrics and asset tracking controls.</p>
+                </div>
+                <div class="text-right text-xs font-mono text-slate-600">
+                    <span id="systemClock">SYSTEM CLOCK: BUSY</span>
+                </div>
+            </header>
+
+            <section class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                <div
+                    class="bg-gradient-to-br from-slate-900 to-[#111827] border border-slate-800 p-6 rounded-2xl shadow-xl shadow-black/10">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Gross Revenue</span>
+                    <div class="text-2xl font-bold text-slate-100 mt-2">₦145,200</div>
+                    <span class="text-[11px] text-emerald-500 block mt-1"><i class="fa-solid fa-caret-up"></i> +12.3%
+                        today</span>
+                </div>
+                <div
+                    class="bg-gradient-to-br from-slate-900 to-[#111827] border border-slate-800 p-6 rounded-2xl shadow-xl shadow-black/10">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tracked SKUs</span>
+                    <div id="skuCount" class="text-2xl font-bold text-slate-100 mt-2">--</div>
+                    <span class="text-[11px] text-blue-400 block mt-1"><i class="fa-solid fa-database"></i> Live DB
+                        Sync</span>
+                </div>
+                <div
+                    class="bg-gradient-to-br from-slate-900 to-[#111827] border border-slate-800 p-6 rounded-2xl shadow-xl shadow-black/10">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">System Throughput</span>
+                    <div class="text-2xl font-bold text-slate-100 mt-2">28 Tx</div>
+                    <span class="text-[11px] text-emerald-500 block mt-1"><i
+                            class="fa-solid fa-circle text-[6px] mr-1"></i> Operational Velocity</span>
+                </div>
+                <div
+                    class="bg-gradient-to-br from-slate-900 to-[#111827] border border-slate-800 p-6 rounded-2xl shadow-xl shadow-black/10">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Stock Alerts</span>
+                    <div class="text-2xl font-bold text-red-500 mt-2">02 Low</div>
+                    <span class="text-[11px] text-red-400 block mt-1"><i class="fa-solid fa-triangle-exclamation"></i>
+                        Action Required</span>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="bg-[#111827]/60 border border-slate-800 rounded-2xl p-6">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked text-blue-500"></i> Asset Registration
+                    </h3>
+                    <form id="productForm" class="space-y-4">
+                        <div>
+                            <label
+                                class="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">Product
+                                Name</label>
+                            <input type="text" id="p_name" required
+                                class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">SKU
+                                Identifier</label>
+                            <input type="text" id="p_sku" required
+                                class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">Price
+                                    (₦)</label>
+                                <input type="number" id="p_price" step="0.01" required
+                                    class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">Initial
+                                    Stock</label>
+                                <input type="number" id="p_stock" required
+                                    class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                class="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-1.5">Safety
+                                Minimum Level</label>
+                            <input type="number" id="p_min" value="5"
+                                class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                        </div>
+                        <button type="submit"
+                            class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-blue-600/10 cursor-pointer transition-all">
+                            Commit to Warehouse Ledger
+                        </button>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-2 bg-[#111827]/60 border border-slate-800 rounded-2xl p-6 flex flex-col">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-blue-500"></i> Warehouse Inventory Ledger
+                    </h3>
+                    <div id="ledgerContainer" class="space-y-3 flex-1 overflow-y-auto max-h-[400px] pr-1">
+                        <div class="text-center text-slate-600 py-12 text-sm">Querying database registries...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Real-Time System Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('systemClock').textContent = `SYSTEM CLOCK: ${now.toUTCString().split(' ')[4]} UTC`;
+        }, 1000);
+
+        const token = localStorage.getItem('token');
+
+        // Fetch and Render Products Dynamically
+        async function fetchInventory() {
+            const container = document.getElementById('ledgerContainer');
+            try {
+                const response = await fetch('/products', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const products = await response.json();
+                    document.getElementById('skuCount').textContent = `${products.length} Assets`;
+
+                    if (products.length === 0) {
+                        container.innerHTML = `<div class="text-center text-slate-600 py-12 text-sm">Warehouse empty. Register items to seed inventory.</div>`;
+                        return;
+                    }
+
+                    container.innerHTML = products.map(item => {
+                        const alertState = item.current_stock <= item.min_stock_level;
+                        const badgeColor = alertState ? 'text-red-400 bg-red-950/30 border-red-900/50' : 'text-emerald-400 bg-emerald-950/30 border-emerald-900/50';
+
+                        return `
+                            <div class="bg-slate-950/40 border border-slate-800/80 p-4 rounded-xl flex justify-between items-center hover:border-slate-700/60 transition-all">
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-200">${item.name}</h4>
+                                    <span class="text-xs font-mono text-slate-500">SKU: ${item.sku}</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-semibold text-slate-200">₦${parseFloat(item.price).toLocaleString()}</div>
+                                    <span class="inline-flex items-center text-[10px] px-2 py-0.5 mt-1 border rounded-md font-medium ${badgeColor}">
+                                        Stock: ${item.current_stock} units
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = `<div class="text-center text-red-400 py-12 text-sm">Authorization failed. Re-authenticate session layer.</div>`;
+                }
+            } catch (err) {
+                container.innerHTML = `<div class="text-center text-red-500 py-12 text-sm">Critical API fault detected.</div>`;
+            }
+        }
+
+        // Handle Product Submission Form Intercept
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('p_name').value,
+                sku: document.getElementById('p_sku').value,
+                price: parseFloat(document.getElementById('p_price').value),
+                current_stock: parseInt(document.getElementById('p_stock').value),
+                min_stock_level: parseInt(document.getElementById('p_min').value)
+            };
+
+            try {
+                const res = await fetch('/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    document.getElementById('productForm').reset();
+                    fetchInventory(); // Reload layout cleanly without full page refresh
+                } else {
+                    alert("Write rejection error dropped from ledger engine backend.");
+                }
+            } catch (err) {
+                alert("Network communication crash during write phase.");
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+
+        // Initialize display execution
+        fetchInventory();
+    </script>
+</body>
+
+</html>

@@ -5,7 +5,7 @@ class LoginSchema(BaseModel):
     username: str
     password: str
 
-class TokenSchema(BaseModel):
+class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
