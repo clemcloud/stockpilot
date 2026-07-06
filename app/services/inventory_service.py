@@ -3,55 +3,56 @@ from sqlalchemy.orm import Session
 from app.models import Product, InventoryLog
 from app.schemas import inventory
 
-def get_all_products(db: Session):
-    return db.query(Product).all()
+# FIX: Filter by the authenticated user's ID
+def get_all_products(db: Session, user_id: int):
+    return db.query(Product).filter(Product.owner_id == user_id).all()
 
-def get_product_by_id(db: Session, product_id: int):
-    product = db.query(Product).filter(Product.id == product_id).first()
+# FIX: Ensure a user cannot view someone else's product by guessing the ID
+def get_product_by_id(db: Session, product_id: int, user_id: int):
+    product = db.query(Product).filter(Product.id == product_id, Product.owner_id == user_id).first()
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Product with ID {product_id} does not exist."
+            detail=f"Product with ID {product_id} does not exist or access denied."
         )
     return product
 
-def create_product(db: Session, product: inventory.ProductCreate):
+# FIX: Explicitly assign the owner_id column on creation
+def create_product(db: Session, product: inventory.ProductCreate, user_id: int):
     db_product = Product(
         name=product.name,
         sku=product.sku,
         description=product.description,
         price=product.price,
         current_stock=product.current_stock,
-        min_stock_level=product.min_stock_level
+        min_stock_level=product.min_stock_level,
+        owner_id=user_id # Maps to the user's database key
     )
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
     return db_product
 
-def create_inventory_log(db: Session, log: inventory.InventoryLogCreate):
-    # 1. Verify the product exists before doing anything
-    product = db.query(Product).filter(Product.id == log.product_id).first()
+def create_inventory_log(db: Session, log: inventory.InventoryLogCreate, user_id: int):
+    # Verify the target product exists AND belongs to this user context
+    product = db.query(Product).filter(Product.id == log.product_id, Product.owner_id == user_id).first()
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Cannot log inventory. Product with ID {log.product_id} does not exist."
+            detail=f"Cannot log inventory. Product with ID {log.product_id} does not exist or access denied."
         )
 
-    # 2. Prevent stock from dropping below zero during manual removal
     if log.log_type == "removal" and product.current_stock < log.change_amount:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Incomplete removal: Not enough stock for {product.name}. Available: {product.current_stock}"
         )
 
-    # 3. Adjust the stock values
     if log.log_type == "addition":
         product.current_stock += log.change_amount
     elif log.log_type == "removal":
         product.current_stock -= log.change_amount
 
-    # 4. Initialize the log entry
     db_log = InventoryLog(
         product_id=log.product_id,
         change_amount=log.change_amount,
@@ -59,7 +60,6 @@ def create_inventory_log(db: Session, log: inventory.InventoryLogCreate):
         notes=log.notes
     )
     
-    # 5. Save everything in ONE clean database transaction
     try:
         db.add(db_log)
         db.commit()
@@ -72,12 +72,12 @@ def create_inventory_log(db: Session, log: inventory.InventoryLogCreate):
             detail="Failed to record inventory log adjustment."
         )
 
-def update_product(db: Session, product_id: int, product_update: inventory.productUpdate):
-    db_product = db.query(Product).filter(Product.id == product_id).first()
+def update_product(db: Session, product_id: int, product_update: inventory.productUpdate, user_id: int):
+    db_product = db.query(Product).filter(Product.id == product_id, Product.owner_id == user_id).first()
     if not db_product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Cannot update. Product with ID {product_id} not found."
+            detail=f"Cannot update. Product with ID {product_id} not found or access denied."
         )
         
     db_product.name = product_update.name

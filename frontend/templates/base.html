@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPilot — {% block title %}{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    {% block navbar %}
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">📦</span>
+            <span class="brand-name">StockPilot</span>
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-link {% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="/products-page" class="nav-link {% if active == 'products' %}active{% endif %}">Products</a>
+            <a href="/inventory-page" class="nav-link {% if active == 'inventory' %}active{% endif %}">Inventory</a>
+            <a href="/sales-page" class="nav-link {% if active == 'sales' %}active{% endif %}">Sales</a>
+            <a href="/terminal-page" class="nav-link {% if active == 'terminal' %}active{% endif %}">POS Terminal</a>
+        </div>
+        <div class="nav-actions">
+            <span class="nav-user">👤 Manager</span>
+            <a href="/" class="btn btn-outline">Logout</a>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="/static/js/main.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

@@ -1,5 +1,5 @@
 from app.database import Base
-from sqlalchemy import Column, Integer, String , Float , DateTime , ForeignKey , Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -9,10 +9,14 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
-    role = Column(String, default="user" )
-    hashed_password = Column(String , nullable=False)
+    role = Column(String, default="user")
+    hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # NEW: Direct relationship links down to this user's data records
+    products = relationship("Product", back_populates="owner", cascade="all, delete-orphan")
+    sales = relationship("Sale", back_populates="owner", cascade="all, delete-orphan")
 
 
 class Product(Base):
@@ -26,9 +30,12 @@ class Product(Base):
     current_stock = Column(Integer)
     min_stock_level = Column(Integer)
 
-    inventory_logs = relationship("InventoryLog", back_populates="product" , cascade="all, delete-orphan")
-    sales_item = relationship("SalesItem", back_populates="product" )
+    # NEW: Foreign Key tracking + Back-populating relationship to User
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    owner = relationship("User", back_populates="products")
 
+    inventory_logs = relationship("InventoryLog", back_populates="product", cascade="all, delete-orphan")
+    sales_item = relationship("SalesItem", back_populates="product")
 
 
 class InventoryLog(Base):
@@ -38,7 +45,7 @@ class InventoryLog(Base):
     product_id = Column(Integer, ForeignKey("products.id"))
     change_amount = Column(Integer)
     log_type = Column(String, nullable=False)  # "addition" or "removal"
-    notes = Column(String , nullable=True)
+    notes = Column(String, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     product = relationship("Product", back_populates="inventory_logs")
@@ -53,7 +60,12 @@ class Sale(Base):
     payment_method = Column(String)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-    sales_items = relationship("SalesItem", back_populates="sale" , cascade="all, delete-orphan")
+    # NEW: Foreign Key tracking + Back-populating relationship to User
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    owner = relationship("User", back_populates="sales")
+
+    sales_items = relationship("SalesItem", back_populates="sale", cascade="all, delete-orphan")
+
 
 class SalesItem(Base):
     __tablename__ = "sales_items"
@@ -66,4 +78,3 @@ class SalesItem(Base):
 
     sale = relationship("Sale", back_populates="sales_items")
     product = relationship("Product", back_populates="sales_item")
-

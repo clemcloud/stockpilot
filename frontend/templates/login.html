@@ -4,149 +4,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockPilot | Terminal Access</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>StockPilot — Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
-<body class="bg-[#0b0f19] text-[#e2e8f0] min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-
-    <div
-        class="absolute w-[500px] h-[500px] rounded-full bg-blue-900/10 blur-[120px] -top-40 -left-40 pointer-events-none">
-    </div>
-    <div
-        class="absolute w-[600px] h-[600px] rounded-full bg-indigo-950/15 blur-[150px] -bottom-40 -right-40 pointer-events-none">
-    </div>
-
-    <div class="w-full max-w-md z-10">
-        <div class="text-center mb-8">
-            <div
-                class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20 mb-4 ring-1 ring-white/10">
-                <i class="fa-solid fa-plane-departure text-white text-xl"></i>
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight text-white uppercase">StockPilot</h1>
-            <p class="text-sm text-slate-500 mt-1">Enterprise OS • Security Gateway Layer</p>
-        </div>
-
-        <div
-            class="bg-[#111827]/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl shadow-black/40">
-            <h2 class="text-lg font-semibold text-slate-200 mb-6 flex items-center gap-2">
-                <i class="fa-solid fa-shield-halved text-blue-500 text-sm"></i> Operator Authorization
-            </h2>
-
-            <div id="errorBanner"
-                class="hidden mb-5 p-3 rounded-lg bg-red-950/30 border border-red-800/50 text-red-400 text-xs flex items-center gap-2">
-                <i class="fa-solid fa-circle-exclamation text-sm"></i>
-                <span id="errorMessage">Authentication sequence rejected.</span>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <span class="auth-icon">📦</span>
+                <h1 class="auth-title">StockPilot</h1>
+                <p class="auth-subtitle">Sign in to your workspace</p>
             </div>
 
-            <form id="loginForm" class="space-y-5">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Operator
-                        Identity ID</label>
-                    <div class="relative">
-                        <div
-                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-sm">
-                            <i class="fa-regular fa-user"></i>
-                        </div>
-                        <input type="text" id="username" required autocomplete="username"
-                            class="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
-                            placeholder="e.g., manager">
-                    </div>
-                </div>
+            <div id="error-message" class="alert alert-error" style="display:none;"></div>
 
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Security
-                        Cipher Passkey</label>
-                    <div class="relative">
-                        <div
-                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 text-sm">
-                            <i class="fa-solid fa-lock"></i>
-                        </div>
-                        <input type="password" id="password" required autocomplete="current-password"
-                            class="w-full pl-10 pr-4 py-3 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all duration-200"
-                            placeholder="••••••••">
-                    </div>
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Enter your username" required />
                 </div>
-
-                <div class="pt-2">
-                    <button type="submit" id="submitBtn"
-                        class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-600/10 hover:shadow-blue-600/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Initialize System Link</span>
-                        <i class="fa-solid fa-arrow-right text-xs"></i>
-                    </button>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password"
+                        required />
                 </div>
+                <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+                    Sign In
+                </button>
             </form>
-        </div>
 
-        <div class="text-center mt-8 text-xs text-slate-600 flex items-center justify-center gap-4">
-            <span><i class="fa-solid fa-circle text-[6px] text-emerald-500 mr-1 animate-pulse"></i> API Node
-                Connected</span>
-            <span>TLS 1.3 Encryption</span>
+            <div class="auth-footer"
+                style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #64748b;">
+                Don't have an account?
+                <a href="/signup-page" class="auth-link"
+                    style="color: #3b82f6; text-decoration: none; font-weight: 500; margin-left: 0.25rem;">Create Admin
+                    Profile</a>
+            </div>
         </div>
     </div>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const error = document.getElementById('error-message');
+            btn.textContent = 'Signing in...';
+            btn.disabled = true;
+            error.style.display = 'none';
 
-            const usernameInput = document.getElementById('username').value;
-            const passwordInput = document.getElementById('password').value;
-            const errorBanner = document.getElementById('errorBanner');
-            const errorMessage = document.getElementById('errorMessage');
-            const submitBtn = document.getElementById('submitBtn');
-
-            // Set UI Loading State
-            errorBanner.classList.add('hidden');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin mr-2"></i> Processing Credentials...`;
-
-            // Pack fields cleanly into URLencoded formats for OAuth2 password handling
-            const formData = new URLSearchParams();
-            formData.append('username', usernameInput);
-            formData.append('password', passwordInput);
+            const formData = new FormData();
+            formData.append('username', document.getElementById('username').value);
+            formData.append('password', document.getElementById('password').value);
 
             try {
-                // Intercept backend auth handler natively without page refresh dependencies
-                const response = await fetch('/auth/login', {
+                const res = await fetch('/auth/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formData
                 });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    // Commit JWT Access token firmly into storage boundaries
+                const data = await res.json();
+                if (res.ok) {
                     localStorage.setItem('token', data.access_token);
-                    // Route immediately into control center dashboard workspace
                     window.location.href = '/dashboard';
                 } else {
-                    // Display error details returned cleanly from your FastAPI raise HTTPException layers
-                    const detail = data.detail || 'Authorization protocol breached.';
-                    errorMessage.textContent = `Access Denied: ${detail}`;
-                    errorBanner.classList.remove('hidden');
-                    resetSubmitButton(submitBtn);
+                    error.textContent = data.detail || 'Invalid credentials';
+                    error.style.display = 'block';
+                    btn.textContent = 'Sign In';
+                    btn.disabled = false;
                 }
-            } catch (error) {
-                errorMessage.textContent = 'System Error: Network pipeline connection dropped.';
-                errorBanner.classList.remove('hidden');
-                resetSubmitButton(submitBtn);
+            } catch (err) {
+                error.textContent = 'Something went wrong. Try again.';
+                error.style.display = 'block';
+                btn.textContent = 'Sign In';
+                btn.disabled = false;
             }
         });
-
-        function resetSubmitButton(btn) {
-            btn.disabled = false;
-            btn.innerHTML = `<span>Initialize System Link</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
-        }
     </script>
 </body>
 

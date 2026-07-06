@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Sales{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Sales History</h1>
+        <p class="page-subtitle">All recorded transactions</p>
+    </div>
+    <a href="/terminal-page" class="btn btn-primary">Open POS Terminal</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Transactions</h3>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Receipt</th>
+                    <th>Total Amount</th>
+                    <th>Payment Method</th>
+                    <th>Items</th>
+                    <th>Date & Time</th>
+                </tr>
+            </thead>
+            <tbody id="salesTable">
+                <tr>
+                    <td colspan="5" class="table-empty">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    async function loadSales() {
+        const res = await fetch('/sales', { headers });
+        const sales = await res.json();
+        const table = document.getElementById('salesTable');
+        if (sales.length === 0) {
+            table.innerHTML = '<tr><td colspan="5" class="table-empty">No sales recorded yet.</td></tr>';
+            return;
+        }
+        table.innerHTML = sales.map(s => `
+            <tr>
+                <td><code>${s.receipt_number}</code></td>
+                <td><strong>₦${s.total_amount.toLocaleString()}</strong></td>
+                <td>${s.payment_method}</td>
+                <td>${s.items ? s.items.length + ' item(s)' : '—'}</td>
+                <td>${new Date(s.timestamp).toLocaleString()}</td>
+            </tr>
+        `).join('');
+    }
+
+    loadSales();
+</script>
+{% endblock %}

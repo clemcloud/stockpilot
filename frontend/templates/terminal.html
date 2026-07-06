@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPilot — POS Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <span class="brand-icon">📦</span>
+            <h1 class="terminal-title">StockPilot <span>POS Terminal</span></h1>
+        </div>
+
+        <div id="receipt-success" class="alert alert-success" style="display:none;"></div>
+        <div id="terminal-error" class="alert alert-error" style="display:none;"></div>
+
+        <div class="terminal-card">
+            <div class="form-group">
+                <label class="form-label">Select Product</label>
+                <select id="terminal-product" class="form-input form-input-lg">
+                    <option value="">Loading products...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Quantity</label>
+                <input type="number" id="terminal-qty" class="form-input form-input-lg" value="1" min="1" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Method</label>
+                <select id="terminal-payment" class="form-input form-input-lg">
+                    <option value="CASH">Cash</option>
+                    <option value="CARD">Card</option>
+                    <option value="MOBILE">Mobile Transfer</option>
+                </select>
+            </div>
+            <button class="btn btn-primary btn-full btn-lg" onclick="recordSale()">
+                Record Sale
+            </button>
+        </div>
+    </div>
+
+    <script>
+        async function loadProducts() {
+            const res = await fetch('/products/public');
+            const products = await res.json();
+            const select = document.getElementById('terminal-product');
+            select.innerHTML = '<option value="">Select a product...</option>';
+            products.forEach(p => {
+                if (p.current_stock > 0) {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = `${p.name} — ₦${p.price.toLocaleString()} (${p.current_stock} left)`;
+                    select.appendChild(option);
+                }
+            });
+        }
+
+        async function recordSale() {
+            const error = document.getElementById('terminal-error');
+            const success = document.getElementById('receipt-success');
+            error.style.display = 'none';
+            success.style.display = 'none';
+
+            const productId = document.getElementById('terminal-product').value;
+            const qty = document.getElementById('terminal-qty').value;
+            const payment = document.getElementById('terminal-payment').value;
+
+            if (!productId) {
+                error.textContent = 'Please select a product.';
+                error.style.display = 'block';
+                return;
+            }
+
+            const res = await fetch('/sales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    payment_method: payment,
+                    items: [{ product_id: parseInt(productId), quantity: parseInt(qty) }]
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                success.textContent = `Sale recorded. Receipt: ${data.receipt_number} — Total: ₦${data.total_amount.toLocaleString()}`;
+                success.style.display = 'block';
+                document.getElementById('terminal-qty').value = 1;
+                loadProducts();
+            } else {
+                const err = await res.json();
+                error.textContent = err.detail || 'Sale failed. Try again.';
+                error.style.display = 'block';
+            }
+        }
+
+        loadProducts();
+    </script>
+</body>
+
+</html>

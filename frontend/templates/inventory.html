@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Inventory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Inventory</h1>
+        <p class="page-subtitle">Log stock movements and monitor levels</p>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Log Stock Movement</h3>
+        </div>
+        <div class="card-body">
+            <div id="log-error" class="alert alert-error" style="display:none;"></div>
+            <div id="log-success" class="alert alert-success" style="display:none;"></div>
+            <div class="form-group">
+                <label class="form-label">Product</label>
+                <select id="log-product" class="form-input">
+                    <option value="">Select product...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Movement Type</label>
+                <select id="log-type" class="form-input">
+                    <option value="addition">Restock (Addition)</option>
+                    <option value="removal">Removal / Damage</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Quantity</label>
+                <input type="number" id="log-quantity" class="form-input" placeholder="0" min="1" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Notes (Optional)</label>
+                <input type="text" id="log-notes" class="form-input"
+                    placeholder="e.g. Supplier delivery, damaged goods" />
+            </div>
+            <button class="btn btn-primary" onclick="logMovement()">Log Movement</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Low Stock Alerts</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Current</th>
+                        <th>Minimum</th>
+                    </tr>
+                </thead>
+                <tbody id="alertsTable">
+                    <tr>
+                        <td colspan="3" class="table-empty">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    async function loadProducts() {
+        const res = await fetch('/products', { headers });
+        const products = await res.json();
+        const select = document.getElementById('log-product');
+        products.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.id;
+            option.textContent = `${p.name} (${p.sku}) — Stock: ${p.current_stock}`;
+            select.appendChild(option);
+        });
+    }
+
+    async function loadAlerts() {
+        const res = await fetch('/inventory/alerts', { headers });
+        const data = await res.json();
+        const table = document.getElementById('alertsTable');
+        if (data.products.length === 0) {
+            table.innerHTML = '<tr><td colspan="3" class="table-empty">All stock levels are healthy.</td></tr>';
+        } else {
+            table.innerHTML = data.products.map(p => `
+                <tr>
+                    <td><strong>${p.name}</strong><br><small>${p.sku}</small></td>
+                    <td><span class="badge badge-danger">${p.current_stock}</span></td>
+                    <td>${p.min_stock_level}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    async function logMovement() {
+        const error = document.getElementById('log-error');
+        const success = document.getElementById('log-success');
+        error.style.display = 'none';
+        success.style.display = 'none';
+
+        const data = {
+            product_id: parseInt(document.getElementById('log-product').value),
+            change_amount: parseInt(document.getElementById('log-quantity').value),
+            log_type: document.getElementById('log-type').value,
+            notes: document.getElementById('log-notes').value || null
+        };
+
+        const res = await fetch('/inventory/log', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            success.textContent = 'Stock movement logged successfully.';
+            success.style.display = 'block';
+            loadProducts();
+            loadAlerts();
+        } else {
+            const err = await res.json();
+            error.textContent = err.detail || 'Failed to log movement.';
+            error.style.display = 'block';
+        }
+    }
+
+    loadProducts();
+    loadAlerts();
+</script>
+{% endblock %}

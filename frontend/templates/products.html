@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Products</h1>
+        <p class="page-subtitle">Manage your product catalog</p>
+    </div>
+    <button class="btn btn-primary" onclick="toggleForm()">+ Add Product</button>
+</div>
+
+<div class="card" id="addProductForm" style="display:none; margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Add New Product</h3>
+        <button class="btn btn-sm btn-outline" onclick="toggleForm()">Cancel</button>
+    </div>
+    <div class="card-body">
+        <div id="form-error" class="alert alert-error" style="display:none;"></div>
+        <div id="form-success" class="alert alert-success" style="display:none;"></div>
+        <form id="productForm" class="form-grid">
+            <div class="form-group">
+                <label class="form-label">Product Name</label>
+                <input type="text" id="name" class="form-input" placeholder="e.g. Indomie Noodles" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">SKU</label>
+                <input type="text" id="sku" class="form-input" placeholder="e.g. STK-FD-0001" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select id="category" class="form-input">
+                    <option value="food">Food</option>
+                    <option value="beverage">Beverage</option>
+                    <option value="household">Household</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Unit</label>
+                <input type="text" id="unit" class="form-input" placeholder="e.g. Carton, Bag" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Price (₦)</label>
+                <input type="number" id="price" class="form-input" placeholder="0.00" step="0.01" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Current Stock</label>
+                <input type="number" id="current_stock" class="form-input" placeholder="0" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Minimum Stock Level</label>
+                <input type="number" id="min_stock_level" class="form-input" placeholder="10" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <input type="text" id="description" class="form-input" placeholder="Optional" />
+            </div>
+        </form>
+        <button class="btn btn-primary" onclick="addProduct()">Save Product</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">All Products</h3>
+        <input type="text" class="form-input search-input" placeholder="Search products..."
+            oninput="filterProducts(this.value)" />
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>SKU</th>
+                    <th>Price</th>
+                    <th>Current Stock</th>
+                    <th>Min Level</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="productsTable">
+                <tr>
+                    <td colspan="6" class="table-empty">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+    let allProducts = [];
+
+    function toggleForm() {
+        const form = document.getElementById('addProductForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function loadProducts() {
+        const res = await fetch('/products', { headers });
+        allProducts = await res.json();
+        renderProducts(allProducts);
+    }
+
+    function renderProducts(products) {
+        const table = document.getElementById('productsTable');
+        if (products.length === 0) {
+            table.innerHTML = '<tr><td colspan="6" class="table-empty">No products found.</td></tr>';
+            return;
+        }
+        table.innerHTML = products.map(p => `
+            <tr>
+                <td><strong>${p.name}</strong>${p.description ? `<br><small>${p.description}</small>` : ''}</td>
+                <td><span class="badge badge-sku">${p.sku}</span></td>
+                <td>₦${p.price.toLocaleString()}</td>
+                <td><strong>${p.current_stock}</strong> ${p.unit || ''}</td>
+                <td>${p.min_stock_level}</td>
+                <td>${p.current_stock <= p.min_stock_level
+                ? '<span class="badge badge-danger">Low Stock</span>'
+                : '<span class="badge badge-success">Healthy</span>'
+            }</td>
+            </tr>
+        `).join('');
+    }
+
+    function filterProducts(query) {
+        const filtered = allProducts.filter(p =>
+            p.name.toLowerCase().includes(query.toLowerCase()) ||
+            p.sku.toLowerCase().includes(query.toLowerCase())
+        );
+        renderProducts(filtered);
+    }
+
+    async function addProduct() {
+        const error = document.getElementById('form-error');
+        const success = document.getElementById('form-success');
+        error.style.display = 'none';
+        success.style.display = 'none';
+
+        const data = {
+            name: document.getElementById('name').value,
+            sku: document.getElementById('sku').value,
+            description: document.getElementById('description').value,
+            price: parseFloat(document.getElementById('price').value),
+            current_stock: parseInt(document.getElementById('current_stock').value),
+            min_stock_level: parseInt(document.getElementById('min_stock_level').value),
+        };
+
+        const res = await fetch('/products', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            success.textContent = 'Product added successfully.';
+            success.style.display = 'block';
+            document.getElementById('productForm').reset();
+            loadProducts();
+        } else {
+            const err = await res.json();
+            error.textContent = err.detail || 'Failed to add product.';
+            error.style.display = 'block';
+        }
+    }
+
+    loadProducts();
+</script>
+{% endblock %}
