@@ -46,19 +46,33 @@
     </div>
 
     <script>
+        // Read owner_id from localStorage — set when manager logs in
+        const ownerId = localStorage.getItem('user_id');
+
         async function loadProducts() {
-            const res = await fetch('/products/public');
-            const products = await res.json();
             const select = document.getElementById('terminal-product');
-            select.innerHTML = '<option value="">Select a product...</option>';
-            products.forEach(p => {
-                if (p.current_stock > 0) {
-                    const option = document.createElement('option');
-                    option.value = p.id;
-                    option.textContent = `${p.name} — ₦${p.price.toLocaleString()} (${p.current_stock} left)`;
-                    select.appendChild(option);
+            try {
+                if (!ownerId) {
+                    select.innerHTML = '<option value="">No store owner session found</option>';
+                    return;
                 }
-            });
+                const res = await fetch(`/products/public?owner_id=${ownerId}`);
+                const products = await res.json();
+                select.innerHTML = '<option value="">Select a product...</option>';
+                if (Array.isArray(products) && products.length > 0) {
+                    products.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = `${p.name} — ₦${Number(p.price).toLocaleString()} (${p.current_stock} left)`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">No products available</option>';
+                }
+            } catch (err) {
+                console.error('Failed to load products:', err);
+                select.innerHTML = '<option value="">Error loading products</option>';
+            }
         }
 
         async function recordSale() {
@@ -77,11 +91,18 @@
                 return;
             }
 
+            if (!ownerId) {
+                error.textContent = 'No store session found. Please log in first.';
+                error.style.display = 'block';
+                return;
+            }
+
             const res = await fetch('/sales', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     payment_method: payment,
+                    owner_id: parseInt(ownerId),
                     items: [{ product_id: parseInt(productId), quantity: parseInt(qty) }]
                 })
             });

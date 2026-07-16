@@ -1,0 +1,11 @@
+spec:
+  template:
+    spec:
+      nodeSelector:
+        eks.amazonaws.com/compute-type: fargate
+
+      tolerations:
+      - key: eks.amazonaws.com/compute-type
+        operator: Equal
+        value: fargate
+        effect: NoSchedule

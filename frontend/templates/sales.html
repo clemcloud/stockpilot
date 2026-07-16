@@ -49,15 +49,16 @@
             table.innerHTML = '<tr><td colspan="5" class="table-empty">No sales recorded yet.</td></tr>';
             return;
         }
+
         table.innerHTML = sales.map(s => `
-            <tr>
-                <td><code>${s.receipt_number}</code></td>
-                <td><strong>₦${s.total_amount.toLocaleString()}</strong></td>
-                <td>${s.payment_method}</td>
-                <td>${s.items ? s.items.length + ' item(s)' : '—'}</td>
-                <td>${new Date(s.timestamp).toLocaleString()}</td>
-            </tr>
-        `).join('');
+    <tr>
+        <td><code>${s.receipt_number}</code></td>
+        <td><strong>₦${s.total_amount.toLocaleString()}</strong></td>
+        <td>${s.payment_method}</td>
+        <td>${s.sales_items ? s.sales_items.length + ' item(s)' : '—'}</td>
+        <td>${new Date(s.timestamp).toLocaleString()}</td>
+    </tr>
+`).join('');
     }
 
     loadSales();

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: stockpilot-service
+  namespace: stockpilot
+spec:
+  type: ClusterIP
+  selector:
+    app: stockpilot  # Must match your pod deployment labels
+  ports:
+    - name: http
+      port: 8000        # <--- Change this to 8000 so the Ingress can find it
+      targetPort: 8000  # <--- Points to your FastAPI container port

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stockpilot
+  namespace: stockpilot  # Explicitly routed to your Fargate profile namespace
+  labels:
+    app: stockpilot
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: stockpilot
+  template:
+    metadata:
+      labels:
+        app: stockpilot
+    spec:
+      containers:
+      - name: stockpilot
+        image: 711396989588.dkr.ecr.us-east-1.amazonaws.com/stockpilot:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://stockpilot_admin:SuperSecurePassword123!@terraform-20260712155056502400000006.cwnk8woqcn4r.us-east-1.rds.amazonaws.com:5432/stockpilotdb"
+        - name: SECRET_KEY
+          value: "your-secret-key"
+        - name: AWS_REGION
+          value: "us-east-1"
+        - name: SNS_TOPIC_ARN
+          value: "arn:aws:sns:us-east-1:711396989588:stockpilot-updates-topic"
+        - name: SES_SENDER_EMAIL
+          value: "umoruclement7@gmail.com"
+        - name: S3_BUCKET_NAME
+          value: "stockpilot-reports-db5e0c04 "  # Updated to your exact bucket
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

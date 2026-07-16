@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Product, User # Imported User for type-hinting
+from app.models import Product, User 
 from app.schemas.inventory import ProductCreate, ProductResponse
 from app.services.inventory_service import get_all_products, get_product_by_id, create_product, update_product
 
@@ -10,10 +10,27 @@ router = APIRouter(prefix="/products", tags=["Products"])
 
 
 # Public route MUST come before /{product_id}
-@router.get("/public", response_model=list[ProductResponse])
-def list_products_public(db: Session = Depends(get_db)):
-    return db.query(Product).filter(Product.current_stock > 0).all()
+# Inside app/api/products.py
 
+@router.get("/public")
+@router.get("/public/")  
+def list_products_public(owner_id: int, db: Session = Depends(get_db)): # <-- Removed '= 1'
+    # Fetch all products matching the owner ID with stock available
+    products = db.query(Product).filter(
+        Product.owner_id == owner_id,
+        Product.current_stock > 0
+    ).all()
+    
+    return [
+        {
+            "id": p.id,
+            "name": p.name,
+            "price": float(p.price),
+            "current_stock": p.current_stock,
+            "owner_id": p.owner_id
+        }
+        for p in products
+    ]
 
 @router.get("", response_model=list[ProductResponse])
 def list_products(
